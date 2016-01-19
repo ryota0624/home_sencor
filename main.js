@@ -6,6 +6,8 @@ const store = require("./store.js");
 const say = require("./speeker.js");
 const server = require("./server.js");
 server();
+const Player = require('player');
+  var player = new Player('/Users/ryota/Documents/Dropbox/xperia_pic/Skyfall-007.mp3');
 
 const infrared$ = new Rx.Subject();
 const motionStream = new Rx.Subject();
@@ -36,19 +38,22 @@ boardReadyStream.subscribe((s) => {
   const irMotion = new five.IR.Motion(7);
   irMotion.on("motionstart", () => motionStream.onNext(true));
   irMotion.on("motionend", () => motionStream.onNext(false));
-  board.on('string', (data) => 　onString(board, data));
+  board.on('string', (data) => onString(board, data));
+  
+  temporal.loop(1000 * 60 * 30, () => {
+    sendLastTemp(tempStack);
+    tempStack = [];
+  });
+  
 });
 
 const sendIrStream = motionStream.distinctUntilChanged();
 sendIrStream.filter(s => s).subscribe((s) => {
+  
   requestBoard(board, "TV");
   requestBoard(board, "SPEEKER");
   
-  
-  if(tempStack.length > 0) {
-    say(tempStack.last);
-    store.push(tempStack.last)
-  }
+  sendLastTemp(tempStack);
   tempStack = [];
   console.log("human comming")
 })
@@ -63,5 +68,16 @@ function requestBoard(board, str) {
   }
 
 function onString(arduino, data) {
-  console.log("from ",data)
+  console.log("from ", data)
+  if (data === "play") {
+    player.play()
+  }
+}
+
+function sendLastTemp(tempStack) {
+  if (tempStack.length > 0) {
+   const sendTemp = tempStack.pop();
+   say(sendTemp);
+   store.push(sendTemp)
+  }
 }
