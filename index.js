@@ -4,9 +4,6 @@ const electron = require("electron");
 const app = require('app');
 const Browser = require('browser-window');
 const clipboard = require("clipboard");
-//  const senser = require("./main.js");
-const no = require("./child.js")
-console.log(no());
 
 require('crash-reporter').start();
 let mainWindow = null;

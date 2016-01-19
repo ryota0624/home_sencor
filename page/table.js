@@ -12,8 +12,9 @@ const t = ((tab) => {
 })([1,2,3,4,5]);
 const tableCreate = (data) => {
   const table = document.getElementById("tbody");
-  rows = data.map(row => {
+  const rows = data.map(row => {
     var tr = document.createElement("tr")
+    var cell;
     for(cell in row) {
       var td = document.createElement("td");
       td.innerHTML = row[cell];
@@ -25,5 +26,4 @@ const tableCreate = (data) => {
   rows.forEach((row) => {
     table.appendChild(row);
   })
-} 
-window.tableCreate
+}
