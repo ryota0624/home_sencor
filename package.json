@@ -1,0 +1,20 @@
+{
+  "name": "fetchpic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {
+    "connect": "^3.4.0",
+    "johnny-five": "^0.9.17",
+    "ncmb": "^2.0.2",
+    "rx": "^4.0.6",
+    "serve-static": "^1.10.1",
+    "temporal": "^0.5.0"
+  }
+}

@@ -1,0 +1,67 @@
+const Rx = require("rx");
+const five = require("johnny-five");
+const board = new five.Board();
+const temporal = require("temporal");
+const store = require("./store.js");
+const say = require("./speeker.js");
+const server = require("./server.js");
+server();
+
+const infrared$ = new Rx.Subject();
+const motionStream = new Rx.Subject();
+infrared$.subscribe((s) => console.log(s));
+var tempStack = [];
+
+board.on("error", (er) => console.log(er));
+
+const boardReadyStream = Rx.Observable.fromEvent(board,"ready");
+
+boardReadyStream.subscribe((s) => {
+  console.log("readyBoard");
+  board.repl.inject({
+    tv: () => {
+      requestBoard(board,"TV");
+    }
+  });
+  
+  // const temperature = new five.Thermometer({
+  //   controller: "LM35",
+  //   pin: "A0"
+  // })
+  // temperature.on("data", () => {
+  //   console.log(this.celsius + "℃");
+  //   tempStack.push(this.celsius);
+  // });
+  
+  const irMotion = new five.IR.Motion(7);
+  irMotion.on("motionstart", () => motionStream.onNext(true));
+  irMotion.on("motionend", () => motionStream.onNext(false));
+  board.on('string', (data) => 　onString(board, data));
+});
+
+const sendIrStream = motionStream.distinctUntilChanged();
+sendIrStream.filter(s => s).subscribe((s) => {
+  requestBoard(board, "TV");
+  requestBoard(board, "SPEEKER");
+  
+  
+  if(tempStack.length > 0) {
+    say(tempStack.last);
+    store.push(tempStack.last)
+  }
+  tempStack = [];
+  console.log("human comming")
+})
+
+function requestBoard(board, str) {
+    if (!board.io) {
+      console.error('not connected to arduino.');
+      return;
+    }
+    board.io.sendString(str);
+    console.log('to arduino: sent'+str);
+  }
+
+function onString(arduino, data) {
+  console.log("from ",data)
+}
