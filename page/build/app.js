@@ -14016,6 +14016,7 @@
 	
 	var m = __webpack_require__(1);
 	var music = __webpack_require__(11);
+	var list = __webpack_require__(16);
 	
 	var itunesParse = function itunesParse(o) {
 	  var artistName = o.artistName;
@@ -14034,10 +14035,66 @@
 	var addList = function addList(o) {
 	  console.log(o);
 	};
+	
+	var myTrackComponent = {
+	  controller: function controller() {
+	    return {
+	      addList: list.remove.bind(list)
+	    };
+	  },
+	  view: function view(ctrl, args) {
+	    var datas = [];
+	    var row = args.row;
+	
+	    var addIconConfig = {
+	      onclick: function onclick() {
+	        ctrl.addList(args.row);
+	      }
+	    };
+	    var playIconConfig = {
+	      onclick: function onclick() {
+	        console.log(args);
+	        if (args.audio.src != args.row.previewUrl) {
+	          args.audio.src = args.row.previewUrl;
+	          args.audio.play();
+	        } else {
+	          args.audio.src = "";
+	          args.audio.pause();
+	        }
+	        console.log("hoge");
+	      }
+	    };
+	    var playIcon = function (play) {
+	      if (play) {
+	        return "glyphicon glyphicon-stop";
+	      } else {
+	        return "glyphicon glyphicon-play";
+	      }
+	    }(args.audio.src === args.row.previewUrl);
+	    datas.push(m("td", m("a", addIconConfig, m("span", { class: "glyphicon glyphicon-remove",
+	      "aria-hidden": true }))));
+	    for (var cell in row) {
+	      switch (cell) {
+	        case "artworkUrl60":
+	          datas.push(m("img", { src: row[cell] }));
+	          break;
+	        case "previewUrl":
+	        case "_id":
+	          break;
+	        default:
+	          datas.push(m("td", row[cell]));
+	          break;
+	      }
+	    }
+	    datas.push(m("td", m("a", playIconConfig, m("span", { class: playIcon, "aria-hidden": true }))));
+	    return m("tr", datas);
+	  }
+	};
+	
 	var itemComponent = {
 	  controller: function controller() {
 	    return {
-	      addList: addList
+	      addList: list.push.bind(list)
 	    };
 	  },
 	  view: function view(ctrl, args) {
@@ -14076,6 +14133,7 @@
 	          datas.push(m("img", { src: row[cell] }));
 	          break;
 	        case "previewUrl":
+	        case "_id":
 	          break;
 	        default:
 	          datas.push(m("td", row[cell]));
@@ -14102,18 +14160,19 @@
 	    };
 	  },
 	  view: function view(ctrl) {
-	    console.log(ctrl.keyword);
 	    var keyword = {
-	      onchange: m.withAttr("value", ctrl.keyword.val), value: ctrl.keyword.val()
+	      onchange: m.withAttr("value", ctrl.keyword.val),
+	      value: ctrl.keyword.val(),
+	      class: "form-control",
+	      placeholder: "search for..."
 	    };
 	    var submit = {
 	      class: "btn btn-default",
 	      onclick: function onclick() {
-	        console.log(ctrl.keyword.val());
 	        ctrl.search(ctrl.keyword.val());
 	      }
 	    };
-	    return m("div", { class: "input-group" }, [m("input", { class: "form-control", placeholder: "search for..." }, keyword), m("span", { class: "input-group-btn" }, m("button", submit, "検索"))]);
+	    return m("div", { class: "input-group" }, [m("input", keyword), m("span", { class: "input-group-btn" }, m("button", submit, "検索"))]);
 	  }
 	};
 	
@@ -14148,10 +14207,20 @@
 	    return { audio: audio };
 	  },
 	  view: function view(ctrl, args) {
-	    var rows = args.list.map(function (row) {
-	      return m.component(itemComponent, { row: row, audio: ctrl.audio });
-	    });
-	    var header = m.component(tableHeader, { item: args.list.pop() });
+	    var popItem = args.list[0];
+	    var rows = function (item) {
+	      var component = undefined;
+	      if (!item) return [];
+	      if (item._id) {
+	        component = myTrackComponent;
+	      } else {
+	        component = itemComponent;
+	      }
+	      return args.list.map(function (row) {
+	        return m.component(component, { row: row, audio: ctrl.audio });
+	      });
+	    }(popItem);
+	    var header = m.component(tableHeader, { item: popItem });
 	    return m("table", { class: "table" }, [m("thead", header), m("tbody", rows)]);
 	  }
 	};
@@ -14164,6 +14233,7 @@
 	  view: function view(ctrl, args) {
 	    var clickHandle = function clickHandle() {
 	      mylist = !mylist;
+	      m.redraw();
 	    };
 	
 	    var tabs = function () {
@@ -14176,15 +14246,19 @@
 	    return m("ul", { class: "nav nav-tabs" }, tabs);
 	  }
 	};
+	
 	var musicComponent = {
 	  controller: function controller() {
 	    return {
-	      tracks: music.all.bind(music)
+	      tracks: music.all.bind(music),
+	      myList: list.all.bind(list)
 	    };
 	  },
 	  view: function view(ctrl) {
 	    var app = function () {
-	      if (mylist) {} else {
+	      if (mylist) {
+	        return m.component(table, { list: ctrl.myList() });
+	      } else {
 	        return [m.component(searchBar, {}), m.component(table, { list: ctrl.tracks().map(itunesParse) })];
 	      }
 	    }();
@@ -15711,6 +15785,66 @@
 	  }
 	};
 	module.exports = headerComponent;
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var m = __webpack_require__(1);
+	var request = __webpack_require__(12);
+	
+	var MyList = function () {
+	  function MyList(callback) {
+	    _classCallCheck(this, MyList);
+	
+	    this._tracks = [];
+	    this._callback = callback;
+	  }
+	
+	  _createClass(MyList, [{
+	    key: "push",
+	    value: function push(track) {
+	      console.log(track);
+	      track._id = track.previewUrl;
+	      var isValid = !this._tracks.some(function (item) {
+	        return item._id == track._id;
+	      });
+	      if (isValid) {
+	        this._tracks.push(track);
+	      }
+	      this._callback();
+	    }
+	  }, {
+	    key: "remove",
+	    value: function remove(_ref) {
+	      var _id = _ref._id;
+	
+	      this._tracks = this._tracks.filter(function (track) {
+	        return track._id != _id;
+	      });
+	    }
+	  }, {
+	    key: "all",
+	    value: function all() {
+	      return this._tracks;
+	    }
+	  }]);
+	
+	  return MyList;
+	}();
+	
+	var redraw = function redraw(s) {
+	  console.log(s);
+	  m.redraw();
+	};
+	
+	module.exports = new MyList(redraw);
 
 /***/ }
 /******/ ]);
