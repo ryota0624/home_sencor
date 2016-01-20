@@ -1,8 +1,8 @@
 const m = require("mithril");
 const links = [
-  {link: "/", label: "graph"},
+  { link: "/", label: "graph" },
   { link: "/table", label: "table" },
-  { link: "/track", label: "track"}
+  { link: "/music", label: "music" }
 ]
 
 
@@ -16,7 +16,6 @@ const header = {
     }
   },
   view: (ctrl, args) => {
-    console.log(ctrl)
     const {label, link } = args;
     return m("li",m("a", {name: link, onclick: ctrl.jump }, label))
   }
@@ -32,7 +31,6 @@ const headerComponent = {
       const {link, label} = item
       return m.component(header, {link, label})
     })
-    console.log(links)
     return(
     m("nav", { class: "navbar navbar-default" },
       m("div", { class: "container-fluid" },

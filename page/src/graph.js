@@ -1,27 +1,4 @@
-function fetchNcmb(key, pass) {
-  console.log(key, pass)
-  const ncmb = new NCMB(key, pass)
-    var TempClass = ncmb.DataStore("Temp");
-    var dataSet;
-    var labels;
-    return new Promise((resolve) => {
-        TempClass.fetchAll().then(res => {
-            const labels = res.map((o) => {
-                return formatDate(new Date(o.createDate), "MM月DD日hh時mm分");
-            })
-            const dataSet = res.map((o) => {
-                return o.celsius;
-            })
-            const table = res.map((o) => {
-                return {
-                    date: formatDate(new Date(o.createDate), "MM月DD日hh時mm分"),
-                    celsius: o.celsius
-                }
-            })
-            resolve({labels, dataSet, table})
-        })
-    })
-}
+const m = require("mithril");
 
 class Temp { 
   constructor(key, pass) {
@@ -30,6 +7,7 @@ class Temp {
     this._temp = [];
     this._store.fetchAll().then((res => {
       this._temp = res;
+      m.redraw();
     }))
   }
   
@@ -50,7 +28,6 @@ class Temp {
   }
   
   table() {
-    console.log(this._temp)
     return this._temp.map((o) => {
      return {
       date: formatDate(new Date(o.createDate), "MM月DD日hh時mm分"),
@@ -60,12 +37,11 @@ class Temp {
   }
   
   draw() {
-    displayLineChart(this.labels(), this.dataSet());
+    return displayLineChart(this.labels(), this.dataSet());
   }
 }
 
 function displayLineChart(labels, setData) {
-  console.log(labels, setData)
     const data = {
         labels,
         datasets: [
@@ -81,22 +57,12 @@ function displayLineChart(labels, setData) {
         ]
     };
     const res = document.getElementById("result")
-    console.log(res)
     if (res != undefined) {
       const ctx = res.getContext("2d");
-      console.log(ctx)
       const options = {};
-      var lineChart = new Chart(ctx).Line(data, options);
+      return new Chart(ctx).Line(data, options);
     }
   }
-
-const graph = () => {
-    fetchNcmb(window.ni.key, window.ni.pass)
-    .then(res => {
-        // window.tableCreate(res.table);
-        displayLineChart(res.labels, res.dataSet)
-    }).catch((err, res) => console.log(err, res))
-}
 
 
 var formatDate = (date, format) => {
@@ -116,3 +82,27 @@ var formatDate = (date, format) => {
 };
 
 module.exports = new Temp(window.ni.key, window.ni.pass)
+
+//function fetchNcmb(key, pass) {
+//   const ncmb = new NCMB(key, pass)
+//     var TempClass = ncmb.DataStore("Temp");
+//     var dataSet;
+//     var labels;
+//     return new Promise((resolve) => {
+//         TempClass.fetchAll().then(res => {
+//             const labels = res.map((o) => {
+//                 return formatDate(new Date(o.createDate), "MM月DD日hh時mm分");
+//             })
+//             const dataSet = res.map((o) => {
+//                 return o.celsius;
+//             })
+//             const table = res.map((o) => {
+//                 return {
+//                     date: formatDate(new Date(o.createDate), "MM月DD日hh時mm分"),
+//                     celsius: o.celsius
+//                 }
+//             })
+//             resolve({labels, dataSet, table})
+//         })
+//     })
+// }

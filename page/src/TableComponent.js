@@ -1,30 +1,8 @@
 
 const m = require("mithril");
 const draw$ = require("./reactive.js");
-const graph = require("./graph.js")
-console.log(graph)
-const h = ((i) => {
-  var arr = []
-  for ( var j = 0; j < i; j++) {
-    arr.push({id: j})
-  }
-  return arr
-})(5)
-
-
-const itemComponent = {
-  controller: () => {
-      
-  },
-  view: (ctrl, args) => {
-    var datas = [];
-    const {row} = args;
-    for (var cell in row) {
-      datas.push(m("td", row[cell]));
-    }
-    return m("tr", datas)
-  }
-}
+const graph = require("./graph.js");
+const { itemComponent } = require("./utilComponent/utilComponent.js");
 
 const TableComponent = {
   controller: () => {
@@ -40,10 +18,9 @@ const TableComponent = {
     return m("table", { class: "table" }, [
       m("thead",
         m("tr",
-          [
-            m("th", "data"),
-            m("th", "cel")
-          ])),
+          [m("th", "data"), m("th", "cel")]
+          )
+        ),
       m("tbody", rows) 
     ])
   }

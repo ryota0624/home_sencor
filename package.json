@@ -20,6 +20,7 @@
     "player": "^0.6.1",
     "rx": "^4.0.6",
     "serve-static": "^1.10.1",
+    "superagent": "^1.7.0",
     "temporal": "^0.5.0"
   }
 }
