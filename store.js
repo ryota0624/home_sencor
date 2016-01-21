@@ -15,12 +15,5 @@ class Store {
 }
 
 const st = new Store()
-// const scr = (cel) => {
-//   if(cel > 30) return 0;
-//   st.push(cel);
-//   scr(cel + 2);
-// }
-
-// scr(20);
 
 module.exports = st
