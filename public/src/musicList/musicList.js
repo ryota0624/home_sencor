@@ -173,6 +173,7 @@ const tableHeader = {
           headers.push(m("th", "artwork"))
           break;
         case "trackViewUrl":
+        case "previewUrl":
           break;
         default:
           headers.push(m("th", cell))

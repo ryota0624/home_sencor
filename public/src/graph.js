@@ -82,27 +82,3 @@ var formatDate = (date, format) => {
 };
 
 module.exports = new Temp(window.ni.key, window.ni.pass)
-
-//function fetchNcmb(key, pass) {
-//   const ncmb = new NCMB(key, pass)
-//     var TempClass = ncmb.DataStore("Temp");
-//     var dataSet;
-//     var labels;
-//     return new Promise((resolve) => {
-//         TempClass.fetchAll().then(res => {
-//             const labels = res.map((o) => {
-//                 return formatDate(new Date(o.createDate), "MM月DD日hh時mm分");
-//             })
-//             const dataSet = res.map((o) => {
-//                 return o.celsius;
-//             })
-//             const table = res.map((o) => {
-//                 return {
-//                     date: formatDate(new Date(o.createDate), "MM月DD日hh時mm分"),
-//                     celsius: o.celsius
-//                 }
-//             })
-//             resolve({labels, dataSet, table})
-//         })
-//     })
-// }

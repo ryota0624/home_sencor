@@ -13928,30 +13928,6 @@
 	};
 	
 	module.exports = new Temp(window.ni.key, window.ni.pass);
-	
-	//function fetchNcmb(key, pass) {
-	//   const ncmb = new NCMB(key, pass)
-	//     var TempClass = ncmb.DataStore("Temp");
-	//     var dataSet;
-	//     var labels;
-	//     return new Promise((resolve) => {
-	//         TempClass.fetchAll().then(res => {
-	//             const labels = res.map((o) => {
-	//                 return formatDate(new Date(o.createDate), "MM月DD日hh時mm分");
-	//             })
-	//             const dataSet = res.map((o) => {
-	//                 return o.celsius;
-	//             })
-	//             const table = res.map((o) => {
-	//                 return {
-	//                     date: formatDate(new Date(o.createDate), "MM月DD日hh時mm分"),
-	//                     celsius: o.celsius
-	//                 }
-	//             })
-	//             resolve({labels, dataSet, table})
-	//         })
-	//     })
-	// }
 
 /***/ },
 /* 8 */
@@ -14187,6 +14163,7 @@
 	          headers.push(m("th", "artwork"));
 	          break;
 	        case "trackViewUrl":
+	        case "previewUrl":
 	          break;
 	        default:
 	          headers.push(m("th", cell));
@@ -15820,51 +15797,98 @@
 	var request = __webpack_require__(12);
 	
 	var MyList = function () {
-	  function MyList(callback) {
-	    _classCallCheck(this, MyList);
+	    function MyList(callback) {
+	        _classCallCheck(this, MyList);
 	
-	    this._tracks = [];
-	    this._callback = callback;
-	  }
-	
-	  _createClass(MyList, [{
-	    key: "push",
-	    value: function push(track) {
-	      console.log(track);
-	      track._id = track.previewUrl;
-	      var isValid = !this._tracks.some(function (item) {
-	        return item._id == track._id;
-	      });
-	      if (isValid) {
-	        this._tracks.push(track);
-	      }
-	      this._callback();
+	        this._tracks = [];
+	        this._callback = callback;
+	        this.fetch();
 	    }
-	  }, {
-	    key: "remove",
-	    value: function remove(_ref) {
-	      var _id = _ref._id;
 	
-	      this._tracks = this._tracks.filter(function (track) {
-	        return track._id != _id;
-	      });
-	    }
-	  }, {
-	    key: "all",
-	    value: function all() {
-	      return this._tracks;
-	    }
-	  }]);
+	    _createClass(MyList, [{
+	        key: "push",
+	        value: function push(track) {
+	            console.log(track);
+	            track._id = track.previewUrl;
+	            var isValid = !this._tracks.some(function (item) {
+	                return item._id == track._id;
+	            });
+	            if (isValid) {
+	                this._tracks.push(track);
+	                pushTrack(track).then(function (r) {
+	                    return console.log(r);
+	                });
+	            }
+	            this._callback();
+	        }
+	    }, {
+	        key: "remove",
+	        value: function remove(_ref) {
+	            var _id = _ref._id;
 	
-	  return MyList;
+	            this._tracks = this._tracks.filter(function (track) {
+	                return track._id != _id;
+	            });
+	        }
+	    }, {
+	        key: "fetch",
+	        value: function fetch() {
+	            var _this = this;
+	
+	            fetchTrack().then(function (r) {
+	                console.log(r);
+	                _this._tracks = r.body.filter(function (track) {
+	                    return checkTrack(track);
+	                });
+	                _this._callback();
+	            }).catch(function (r) {
+	                console.log(r);
+	            });
+	        }
+	    }, {
+	        key: "all",
+	        value: function all() {
+	            return this._tracks;
+	        }
+	    }]);
+	
+	    return MyList;
 	}();
 	
 	var redraw = function redraw(s) {
-	  console.log(s);
-	  m.redraw();
+	    console.log(s);
+	    m.redraw();
 	};
 	
 	module.exports = new MyList(redraw);
+	
+	function fetchTrack() {
+	    return new Promise(function (resolve, reject) {
+	        request.get("/track").end(function (err, res) {
+	            if (res) {
+	                resolve(res);
+	            } else {
+	                reject(false);
+	            }
+	        });
+	    });
+	}
+	
+	function pushTrack(o) {
+	    return new Promise(function (resolve, reject) {
+	        request.post("/track").send(o).end(function (err, res) {
+	            if (res) {
+	                resolve(res);
+	            } else {
+	                reject(false);
+	            }
+	        });
+	    });
+	}
+	
+	function checkTrack(o) {
+	    return o._id && o.artworkUrl60 && o.trackName && o.previewUrl;
+	}
 
 /***/ },
 /* 17 */

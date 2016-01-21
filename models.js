@@ -8,8 +8,8 @@ const sequelize = new Sequelize(
 
 global.db = {
     Sequelize: Sequelize,
-    sequelize: Sequelize,
-    Message: sequelize.import(__dirname + "/track")
+    sequelize: sequelize,
+    Track: sequelize.import(__dirname + "/track")
 }
 
 module.exports = global.db
