@@ -52,7 +52,7 @@
 	var Table = __webpack_require__(8);
 	var Music = __webpack_require__(10);
 	
-	var header = __webpack_require__(15);
+	var header = __webpack_require__(17);
 	m.route(document.getElementById("App"), "/", {
 	  "/": Graph,
 	  "/table": Table,
@@ -14280,6 +14280,7 @@
 	
 	var m = __webpack_require__(1);
 	var request = __webpack_require__(12);
+	var jsonp = __webpack_require__(15);
 	
 	var url = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/wa/wsSearch";
 	var initalConfig = {
@@ -14293,7 +14294,6 @@
 	  function Music(callback) {
 	    _classCallCheck(this, Music);
 	
-	    console.log(callback);
 	    this._url = url;
 	    this._tracks = [];
 	    this._callback = callback;
@@ -14327,8 +14327,8 @@
 	      term: name,
 	      country: 'JP',
 	      entry: 'musicTrack'
-	    }).end(function (err, res) {
-	      var result = JSON.parse(res.text);
+	    }).use(jsonp).end(function (err, res) {
+	      var result = res.body;
 	      if (result.resultCount > 0) {
 	        var tracks = result.results;
 	        resolve(tracks);
@@ -15745,46 +15745,66 @@
 
 /***/ },
 /* 15 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	"use strict";
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 	
-	var m = __webpack_require__(1);
-	var links = [{ link: "/", label: "graph" }, { link: "/table", label: "table" }, { link: "/music", label: "music" }];
-	
-	var header = {
-	  controller: function controller() {
-	    return {
-	      jump: function jump(e) {
-	        var jumper = e.target.name;
-	        m.route(jumper);
-	      }
-	    };
-	  },
-	  view: function view(ctrl, args) {
-	    var label = args.label;
-	    var link = args.link;
-	
-	    return m("li", m("a", { name: link, onclick: ctrl.jump }, label));
+	var serialise = function serialise(obj) {
+	  if (typeof obj != 'object') return obj;
+	  var pairs = [];
+	  for (var key in obj) {
+	    if (null != obj[key]) {
+	      pairs.push(encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]));
+	    }
 	  }
+	  return pairs.join('&');
 	};
-	var headerComponent = {
-	  controller: function controller() {
-	    return {
-	      links: links
-	    };
-	  },
-	  view: function view(ctrl) {
-	    var links = ctrl.links.map(function (item) {
-	      var link = item.link;
-	      var label = item.label;
 	
-	      return m.component(header, { link: link, label: label });
-	    });
-	    return m("nav", { class: "navbar navbar-default" }, m("div", { class: "container-fluid" }, m("div", { class: "navbar-header" }, m("ul", { class: "nav nav-tabs" }, links))));
-	  }
+	var jsonp = function jsonp(request) {
+	  // In case this is in nodejs, run without modifying request
+	  if (typeof window == 'undefined') return request;
+	
+	  request.end = end.bind(request);
+	  return request;
 	};
-	module.exports = headerComponent;
+	
+	var callbackWrapper = function callbackWrapper(data) {
+	  var err = null;
+	  var res = {
+	    body: data
+	  };
+	
+	  this._jsonp.callback.call(this, err, res);
+	};
+	
+	var end = function end(callback) {
+	  this._jsonp = {
+	    callbackParam: 'callback',
+	    callbackName: 'superagentCallback' + new Date().valueOf() + parseInt(Math.random() * 1000),
+	    callback: callback
+	  };
+	
+	  window[this._jsonp.callbackName] = callbackWrapper.bind(this);
+	
+	  var params = _defineProperty({}, this._jsonp.callbackParam, this._jsonp.callbackName);
+	
+	  this._query.push(serialise(params));
+	  var queryString = this._query.join('&');
+	
+	  var s = document.createElement('script');
+	  var separator = this.url.indexOf('?') > -1 ? '&' : '?';
+	  var url = this.url + separator + queryString;
+	
+	  s.src = url;
+	  document.getElementsByTagName('head')[0].appendChild(s);
+	};
+	
+	// Prefer node/browserify style requires
+	if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+	  module.exports = jsonp;
+	} else if (typeof window !== 'undefined') {
+	  window.superagentJSONP = jsonp;
+	}
 
 /***/ },
 /* 16 */
@@ -15845,6 +15865,49 @@
 	};
 	
 	module.exports = new MyList(redraw);
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	var m = __webpack_require__(1);
+	var links = [{ link: "/", label: "graph" }, { link: "/table", label: "table" }, { link: "/music", label: "music" }];
+	
+	var header = {
+	  controller: function controller() {
+	    return {
+	      jump: function jump(e) {
+	        var jumper = e.target.name;
+	        m.route(jumper);
+	      }
+	    };
+	  },
+	  view: function view(ctrl, args) {
+	    var label = args.label;
+	    var link = args.link;
+	
+	    return m("li", m("a", { name: link, onclick: ctrl.jump }, label));
+	  }
+	};
+	var headerComponent = {
+	  controller: function controller() {
+	    return {
+	      links: links
+	    };
+	  },
+	  view: function view(ctrl) {
+	    var links = ctrl.links.map(function (item) {
+	      var link = item.link;
+	      var label = item.label;
+	
+	      return m.component(header, { link: link, label: label });
+	    });
+	    return m("nav", { class: "navbar navbar-default" }, m("div", { class: "container-fluid" }, m("div", { class: "navbar-header" }, m("ul", { class: "nav nav-tabs" }, links))));
+	  }
+	};
+	module.exports = headerComponent;
 
 /***/ }
 /******/ ]);

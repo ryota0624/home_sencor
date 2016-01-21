@@ -1,6 +1,7 @@
 "use strict"
 const m = require("mithril");
 var request = require("superagent");
+var jsonp = require("superagent-jsonp");
 
 const url = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/wa/wsSearch";
 let initalConfig = {
@@ -12,7 +13,6 @@ let initalConfig = {
     
 class Music {
   constructor(callback) {
-    console.log(callback)
     this._url = url;
     this._tracks = [];
     this._callback = callback;
@@ -36,8 +36,8 @@ function searchMusic(name) {
         term: name,
         country: 'JP',
         entry: 'musicTrack'
-      }).end((err, res) => {
-        const result = JSON.parse(res.text);
+      }).use(jsonp).end((err, res) => {
+        const result = res.body;
         if (result.resultCount > 0) {
           const tracks = result.results;
           resolve(tracks)
