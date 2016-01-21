@@ -170,10 +170,11 @@ const tableHeader = {
     for (let cell in args.item) {
             switch (cell) {
         case "artworkUrl60":
-          headers.push(m("th", "artwork"))
-          break;
+        //   headers.push(m("th", "artwork"))
+        //   break;
         case "trackViewUrl":
         case "previewUrl":
+        case "_id":
           break;
         default:
           headers.push(m("th", cell))
@@ -214,7 +215,7 @@ const table = {
     ])
   }
 }
-var mylist = false;
+var mylist = true;
 
 const navBar = {
   controller: () => {
@@ -229,13 +230,13 @@ const navBar = {
     const tabs = (() => {
       if (mylist) {
         return [
-          m("li", { role: "presentation" }, m("a", { onclick: clickHandle }, "itunesStore")),
-          m("li", { role: "presentation", class: "active" }, m("a", { onclick: clickHandle }, "mylist"))
+          m("li", { role: "presentation", class: "active" }, m("a", { onclick: clickHandle }, "mylist")),
+          m("li", { role: "presentation" }, m("a", { onclick: clickHandle }, "itunesStore"))
         ]
       } else {
         return [
-          m("li", { role: "presentation", class: "active" }, m("a", { onclick: clickHandle }, "itunesStore")),
-          m("li", { role: "presentation" }, m("a", { onclick: clickHandle }, "mylist"))
+          m("li", { role: "presentation" }, m("a", { onclick: clickHandle }, "mylist")),
+          m("li", { role: "presentation", class: "active" }, m("a", { onclick: clickHandle }, "itunesStore"))
         ]
       }
     })();

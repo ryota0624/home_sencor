@@ -56,7 +56,14 @@ function displayLineChart(labels, setData) {
             }
         ]
     };
+    const container = document.getElementsByClassName("container")[0];
+    const w = container.offsetWidth;
+    const h = container.offsetHeight
+    
+    if(!container) return 0;
     const res = document.getElementById("result")
+    console.log(w)
+    res.setAttribute("width", w);
     if (res != undefined) {
       const ctx = res.getContext("2d");
       const options = {};

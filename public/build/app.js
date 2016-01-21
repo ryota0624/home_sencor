@@ -13901,7 +13901,14 @@
 	      data: setData
 	    }]
 	  };
+	  var container = document.getElementsByClassName("container")[0];
+	  var w = container.offsetWidth;
+	  var h = container.offsetHeight;
+	
+	  if (!container) return 0;
 	  var res = document.getElementById("result");
+	  console.log(w);
+	  res.setAttribute("width", w);
 	  if (res != undefined) {
 	    var ctx = res.getContext("2d");
 	    var options = {};
@@ -14160,10 +14167,11 @@
 	    for (var cell in args.item) {
 	      switch (cell) {
 	        case "artworkUrl60":
-	          headers.push(m("th", "artwork"));
-	          break;
+	        //   headers.push(m("th", "artwork"))
+	        //   break;
 	        case "trackViewUrl":
 	        case "previewUrl":
+	        case "_id":
 	          break;
 	        default:
 	          headers.push(m("th", cell));
@@ -14201,7 +14209,7 @@
 	    return m("table", { class: "table" }, [m("thead", header), m("tbody", rows)]);
 	  }
 	};
-	var mylist = false;
+	var mylist = true;
 	
 	var navBar = {
 	  controller: function controller() {
@@ -14215,9 +14223,9 @@
 	
 	    var tabs = function () {
 	      if (mylist) {
-	        return [m("li", { role: "presentation" }, m("a", { onclick: clickHandle }, "itunesStore")), m("li", { role: "presentation", class: "active" }, m("a", { onclick: clickHandle }, "mylist"))];
+	        return [m("li", { role: "presentation", class: "active" }, m("a", { onclick: clickHandle }, "mylist")), m("li", { role: "presentation" }, m("a", { onclick: clickHandle }, "itunesStore"))];
 	      } else {
-	        return [m("li", { role: "presentation", class: "active" }, m("a", { onclick: clickHandle }, "itunesStore")), m("li", { role: "presentation" }, m("a", { onclick: clickHandle }, "mylist"))];
+	        return [m("li", { role: "presentation" }, m("a", { onclick: clickHandle }, "mylist")), m("li", { role: "presentation", class: "active" }, m("a", { onclick: clickHandle }, "itunesStore"))];
 	      }
 	    }();
 	    return m("ul", { class: "nav nav-tabs" }, tabs);
@@ -15797,97 +15805,115 @@
 	var request = __webpack_require__(12);
 	
 	var MyList = function () {
-	    function MyList(callback) {
-	        _classCallCheck(this, MyList);
+	  function MyList(callback) {
+	    _classCallCheck(this, MyList);
 	
-	        this._tracks = [];
-	        this._callback = callback;
-	        this.fetch();
+	    this._tracks = [];
+	    this._callback = callback;
+	    this.fetch();
+	  }
+	
+	  _createClass(MyList, [{
+	    key: "push",
+	    value: function push(track) {
+	      console.log(track);
+	      track._id = track.previewUrl;
+	      var isValid = !this._tracks.some(function (item) {
+	        return item._id == track._id;
+	      });
+	      if (isValid) {
+	        this._tracks.push(track);
+	        pushTrack(track).then(function (r) {
+	          return console.log(r);
+	        });
+	      }
+	      this._callback();
 	    }
+	  }, {
+	    key: "remove",
+	    value: function remove(_ref) {
+	      var _id = _ref._id;
 	
-	    _createClass(MyList, [{
-	        key: "push",
-	        value: function push(track) {
-	            console.log(track);
-	            track._id = track.previewUrl;
-	            var isValid = !this._tracks.some(function (item) {
-	                return item._id == track._id;
-	            });
-	            if (isValid) {
-	                this._tracks.push(track);
-	                pushTrack(track).then(function (r) {
-	                    return console.log(r);
-	                });
-	            }
-	            this._callback();
-	        }
-	    }, {
-	        key: "remove",
-	        value: function remove(_ref) {
-	            var _id = _ref._id;
+	      this._tracks = this._tracks.filter(function (track) {
+	        return track._id != _id;
+	      });
+	    }
+	  }, {
+	    key: "fetch",
+	    value: function fetch() {
+	      var _this = this;
 	
-	            this._tracks = this._tracks.filter(function (track) {
-	                return track._id != _id;
-	            });
-	        }
-	    }, {
-	        key: "fetch",
-	        value: function fetch() {
-	            var _this = this;
+	      fetchTrack().then(function (r) {
+	        console.log(r);
+	        _this._tracks = r.body.filter(function (track) {
+	          return checkTrack(track);
+	        }).map(function (track) {
+	          return myListParse(track);
+	        });
+	        _this._callback();
+	      }).catch(function (r) {
+	        console.log(r);
+	      });
+	    }
+	  }, {
+	    key: "all",
+	    value: function all() {
+	      return this._tracks;
+	    }
+	  }]);
 	
-	            fetchTrack().then(function (r) {
-	                console.log(r);
-	                _this._tracks = r.body.filter(function (track) {
-	                    return checkTrack(track);
-	                });
-	                _this._callback();
-	            }).catch(function (r) {
-	                console.log(r);
-	            });
-	        }
-	    }, {
-	        key: "all",
-	        value: function all() {
-	            return this._tracks;
-	        }
-	    }]);
-	
-	    return MyList;
+	  return MyList;
 	}();
 	
 	var redraw = function redraw(s) {
-	    console.log(s);
-	    m.redraw();
+	  console.log(s);
+	  m.redraw();
 	};
 	
 	module.exports = new MyList(redraw);
 	
 	function fetchTrack() {
-	    return new Promise(function (resolve, reject) {
-	        request.get("/track").end(function (err, res) {
-	            if (res) {
-	                resolve(res);
-	            } else {
-	                reject(false);
-	            }
-	        });
+	  return new Promise(function (resolve, reject) {
+	    request.get("/track").end(function (err, res) {
+	      if (res) {
+	        resolve(res);
+	      } else {
+	        reject(false);
+	      }
 	    });
+	  });
 	}
 	
 	function pushTrack(o) {
-	    return new Promise(function (resolve, reject) {
-	        request.post("/track").send(o).end(function (err, res) {
-	            if (res) {
-	                resolve(res);
-	            } else {
-	                reject(false);
-	            }
-	        });
+	  return new Promise(function (resolve, reject) {
+	    request.post("/track").send(o).end(function (err, res) {
+	      if (res) {
+	        resolve(res);
+	      } else {
+	        reject(false);
+	      }
 	    });
+	  });
 	}
 	
 	function checkTrack(o) {
-	    return o._id && o.artworkUrl60 && o.trackName && o.previewUrl;
+	  return o._id && o.artworkUrl60 && o.trackName && o.previewUrl;
+	}
+	
+	function myListParse(o) {
+	  var _id = o._id;
+	  var artistName = o.artistName;
+	  var artworkUrl60 = o.artworkUrl60;
+	  var trackName = o.trackName;
+	  var previewUrl = o.previewUrl;
+	
+	  return {
+	    _id: _id,
+	    artworkUrl60: artworkUrl60,
+	    trackName: trackName,
+	    artistName: artistName,
+	    previewUrl: previewUrl
+	  };
 	}
 
 /***/ },

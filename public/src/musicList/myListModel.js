@@ -28,7 +28,9 @@ class MyList {
   fetch() {
       fetchTrack().then(r => {
           console.log(r);
-          this._tracks = r.body.filter(track => checkTrack(track));
+          this._tracks = r.body
+            .filter(track => checkTrack(track))
+            .map(track => myListParse(track));
           this._callback();
       }).catch(r => {
           console.log(r);
@@ -76,4 +78,21 @@ function pushTrack(o) {
 
 function checkTrack(o) {
     return o._id && o.artworkUrl60 && o.trackName && o.previewUrl
+}
+
+function myListParse(o) {
+  const {
+    _id, 
+    artistName,
+    artworkUrl60,
+    trackName,
+    previewUrl
+  } = o;
+  return {
+    _id,
+    artworkUrl60,
+    trackName,
+    artistName,
+    previewUrl
+  }
 }
